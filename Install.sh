@@ -90,3 +90,17 @@ vault secrets list                            # see all mounted engines
 vault auth enable kubernetes
 vault write auth/kubernetes/config \
   kubernetes_host="https://kubernetes.default.svc:443"
+
+vault policy write myapp - <<EOF
+path "secret/data/myapp/*" {
+  capabilities = ["read"]
+}
+EOF
+
+vault write auth/kubernetes/role/myapp \
+  bound_service_account_names=myapp \
+  bound_service_account_namespaces=demo \
+  policies=myapp \
+  ttl=1h
+  
+exit

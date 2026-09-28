@@ -59,6 +59,18 @@ kubectl exec -n vault vault-0 -- vault operator unseal <KEY_2>
 kubectl exec -n vault vault-0 -- vault operator unseal <KEY_3>
 # Sealed: false  <- باز شد
 
-kubectl exec -n vault vault-0 -- vault status
-
+kubectl -n vault exec vault-0 -- vault status
+Key             Value
+---             -----
+Seal Type       shamir
+Initialized     true
+Sealed          false
+Total Shares    5
+Threshold       3
+Version         2.0.4
+Build Date      2026-08-03T16:14:36Z
+Storage Type    file
+Cluster Name    vault-cluster-30b2655a
+Cluster ID      4334355d-0dd7-ad25-267f-43a53933d0b7
+HA Enabled      false
 

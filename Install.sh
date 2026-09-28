@@ -30,7 +30,7 @@ command terminated with exit code 2
 
 #----------------------------init--------------------------------------
 kubectl exec -n vault vault-0 -- vault operator init \
-  -key-shares=5 -key-threshold=3 -format=json > init.json
+  -key-shares=5 -key-threshold=3 -format=json > vault-init.json
 
 chmod 600 vault-init.json
 apt-get install -y jq 
@@ -42,7 +42,7 @@ XkqJt6K71NQvoMhCZByjY1NOblgLBD5qto800uVaVhzZ
 PLi+Rpv/3ua9tZmFhw132NUKY2eSRRZv7PKf5FoJtLzQ
 1x5MhBkKqbXRsDO0bNq51WuuTssb6W9I3K5uVMQSdZ7U
 
-jq -r '.root_token'        vault-init.json
+jq -r '.root_token' vault-init.json
 hvs.LefUDJnDjOTmbHM4BQvuBeqO
 
 # init.json contains:

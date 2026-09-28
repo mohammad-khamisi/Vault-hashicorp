@@ -12,6 +12,22 @@ helm install vault hashicorp/vault -n vault \
 kubectl get pods -n vault
 # vault-0  0/1 Running   <- Ready نیست چون Sealed است
 
+kubectl -n vault exec vault-0 -- vault status
+Key                Value
+---                -----
+Seal Type          shamir
+Initialized        false
+Sealed             true
+Total Shares       0
+Threshold          0
+Unseal Progress    0/0
+Unseal Nonce       n/a
+Version            2.0.4
+Build Date         2026-08-03T16:14:36Z
+Storage Type       file
+HA Enabled         false
+command terminated with exit code 2
+
 #----------------------------init--------------------------------------
 kubectl exec -n vault vault-0 -- vault operator init \
   -key-shares=5 -key-threshold=3 -format=json > init.json

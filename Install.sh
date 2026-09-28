@@ -35,6 +35,7 @@ kubectl exec -n vault vault-0 -- vault operator init \
 chmod 600 vault-init.json
 apt-get install -y jq 
 
+#the key is deleted and it was just for test
 jq -r '.unseal_keys_b64[]' vault-init.json
 g6iNr4+81wSrKm87kuzHFc3zVdFbkpWSz+HwpTlRgeN4
 XkqJt6K71NQvoMhCZByjY1NOblgLBD5qto800uVaVhzZ

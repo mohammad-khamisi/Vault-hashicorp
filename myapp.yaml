@@ -1,0 +1,33 @@
+#kubectl create namespace demo
+#kubectl -n demo create serviceaccount myapp
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: myapp }
+  template:
+    metadata:
+      labels: { app: myapp }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "myapp"
+        vault.hashicorp.com/agent-inject-secret-db.txt: "secret/data/myapp/db"
+        vault.hashicorp.com/agent-inject-template-db.txt: |
+          {{- with secret "secret/data/myapp/db" -}}
+          export DB_USER="{{ .Data.data.username }}"
+          export DB_PASS="{{ .Data.data.password }}"
+          {{- end }}
+    spec:
+      serviceAccountName: myapp
+      containers:
+        - name: app
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - . /vault/secrets/db.txt &&
+              echo "connected as $DB_USER" &&
+              sleep 3600

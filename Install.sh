@@ -32,6 +32,9 @@ command terminated with exit code 2
 kubectl exec -n vault vault-0 -- vault operator init \
   -key-shares=5 -key-threshold=3 -format=json > init.json
 
+chmod 600 vault-init.json
+apt-get install -y jq 
+
 jq -r '.unseal_keys_b64[]' vault-init.json
 g6iNr4+81wSrKm87kuzHFc3zVdFbkpWSz+HwpTlRgeN4
 XkqJt6K71NQvoMhCZByjY1NOblgLBD5qto800uVaVhzZ

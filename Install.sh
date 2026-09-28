@@ -33,7 +33,7 @@ kubectl exec -n vault vault-0 -- vault operator init \
   -key-shares=5 -key-threshold=3 -format=json > init.json
 
 
-cat vault-init.json
+cat init.json
 {
   "unseal_keys_b64": [
     "g6iNr4+81wSrKm87kuzHFc3zVdFbkpWSz+HwpTlRgeN4",

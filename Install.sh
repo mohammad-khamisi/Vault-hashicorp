@@ -85,3 +85,8 @@ vault kv get secret/myapp/db
 vault kv put secret/myapp/db username=admin password='N3wPass!'
 vault kv get -version=1 secret/myapp/db       # old value still there
 vault secrets list                            # see all mounted engines
+
+#----------------------------enable kubernetes--------------------------------------
+vault auth enable kubernetes
+vault write auth/kubernetes/config \
+  kubernetes_host="https://kubernetes.default.svc:443"

@@ -73,4 +73,15 @@ Storage Type    file
 Cluster Name    vault-cluster-30b2655a
 Cluster ID      4334355d-0dd7-ad25-267f-43a53933d0b7
 HA Enabled      false
+#----------------------------Secrets engines--------------------------------------
+kubectl -n vault exec -it vault-0 -- sh
+vault login                                   # root_token
 
+vault secrets enable -path=secret kv-v2
+vault kv put secret/myapp/db username=admin password='S3cret!'
+vault kv get secret/myapp/db
+
+# versioning (KV v2 only)
+vault kv put secret/myapp/db username=admin password='N3wPass!'
+vault kv get -version=1 secret/myapp/db       # old value still there
+vault secrets list                            # see all mounted engines

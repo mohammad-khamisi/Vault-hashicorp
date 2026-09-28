@@ -11,7 +11,8 @@ helm install vault hashicorp/vault -n vault \
 
 kubectl get pods -n vault
 # vault-0  0/1 Running   <- Ready نیست چون Sealed است
-#------------------------------------------------------------------
+
+#----------------------------init--------------------------------------
 kubectl exec -n vault vault-0 -- vault operator init \
   -key-shares=5 -key-threshold=3 -format=json > init.json
 
@@ -19,7 +20,7 @@ kubectl exec -n vault vault-0 -- vault operator init \
 #   unseal_keys_b64: [5 keys]
 #   root_token: hvs.xxxxx
 
-#------------------------------------------------------------------
+#----------------------------unseal--------------------------------------
 
 kubectl exec -n vault vault-0 -- vault operator unseal <KEY_1>
 # Sealed: true   Unseal Progress: 1/3

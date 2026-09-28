@@ -21,6 +21,13 @@ kubectl exec -n vault vault-0 -- vault operator init \
 
 #------------------------------------------------------------------
 
+kubectl exec -n vault vault-0 -- vault operator unseal <KEY_1>
+# Sealed: true   Unseal Progress: 1/3
+kubectl exec -n vault vault-0 -- vault operator unseal <KEY_2>
+# Sealed: true   Unseal Progress: 2/3
+kubectl exec -n vault vault-0 -- vault operator unseal <KEY_3>
+# Sealed: false  <- باز شد
 
+kubectl exec -n vault vault-0 -- vault status
 
 

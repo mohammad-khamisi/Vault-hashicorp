@@ -1,0 +1,75 @@
+helm repo add hashicorp https://helm.releases.hashicorp.com
+helm install vault hashicorp/vault -n vault --create-namespace \
+  --set global.externalVaultAddr=http://192.168.0.76:30820
+
+kubectl -n vault get pods
+# only: vault-agent-injector-xxxx  1/1 Running   (no vault-0)
+
+#------------------------------------------------------------------
+kubectl -n vault apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-token
+  annotations:
+    kubernetes.io/service-account.name: vault
+type: kubernetes.io/service-account-token
+EOF
+
+# three things Vault needs to know about this cluster
+TOKEN_REVIEW_JWT=$(kubectl -n vault get secret vault-token -o jsonpath='{.data.token}' | base64 -d)
+kubectl -n vault get secret vault-token -o jsonpath='{.data.ca\.crt}' | base64 -d > prod-ca.crt
+KUBE_HOST=$(kubectl config view --raw --minify -o jsonpath='{.clusters[0].cluster.server}')
+echo $KUBE_HOST     # must be the cluster's own API, e.g. https://192.168.1.50:6443
+#------------------------------------------------------------------
+
+export VAULT_ADDR=http://192.168.0.76:30820
+vault login                                     # or: kubectl exec into vault-0
+
+vault auth enable -path=k8s-prod kubernetes
+vault write auth/k8s-prod/config \
+  kubernetes_host="$KUBE_HOST" \
+  kubernetes_ca_cert=@prod-ca.crt \
+  token_reviewer_jwt="$TOKEN_REVIEW_JWT"
+
+#------------------------------------------------------------------
+vault kv put secret/prod/shop/db username=shop password='Pr0d!'
+
+vault policy write prod-shop - <<EOF
+path "secret/data/prod/shop/*" { capabilities = ["read"] }
+EOF
+
+vault write auth/k8s-prod/role/shop \
+  bound_service_account_names=shop \
+  bound_service_account_namespaces=shop \
+  policies=prod-shop ttl=1h
+#------------------------------------------------------------------
+kubectl create ns shop
+kubectl -n shop create sa shop
+kubectl apply -f - <<'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: shop, namespace: shop }
+spec:
+  selector: { matchLabels: { app: shop } }
+  template:
+    metadata:
+      labels: { app: shop }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/auth-path: "auth/k8s-prod"
+        vault.hashicorp.com/role: "shop"
+        vault.hashicorp.com/agent-inject-secret-db: "secret/data/prod/shop/db"
+        vault.hashicorp.com/agent-inject-template-db: |
+          {{- with secret "secret/data/prod/shop/db" -}}
+          DB_USER={{ .Data.data.username }}
+          DB_PASS={{ .Data.data.password }}
+          {{- end }}
+    spec:
+      serviceAccountName: shop
+      containers:
+        - name: app
+          image: busybox:1.36
+          command: ["sh", "-c", "cat /vault/secrets/db; sleep 3600"]
+EOF
+#------------------------------------------------------------------
